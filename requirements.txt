@@ -1,0 +1,5 @@
+matplotlib==3.7.2
+multiprocess==0.70.14
+numpy==1.24.4
+torch==2.0.1+cu118
+tqdm==4.65.0
