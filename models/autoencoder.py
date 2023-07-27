@@ -5,7 +5,7 @@ import torch.nn.functional as F
 class Autoencoder(nn.Module):
     def __init__(self, in_channels=1, out_channels=20, input_size=64, latent_size=100):
         super(Autoencoder, self).__init__()
-        
+
         self.input_size = input_size
         self.latent_size = latent_size
 
