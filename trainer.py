@@ -21,12 +21,12 @@ import os
 from models import UNet, Autoencoder
 
 
-def get_model(name: str, unet_init_features=32):
+def get_model(name: str, unet_init_features=32, autoencoder_latent_size=100, input_size=64):
     name = name.lower()
     if name == 'unet':
         return UNet(in_channels=1, out_channels=20, init_features=unet_init_features)
     if name == 'autoencoder':
-        return Autoencoder(in_channels=1, out_channels=20)
+        return Autoencoder(in_channels=1, out_channels=20, input_size=input_size, latent_size=autoencoder_latent_size)
 
 
 def compute_multipliers(train_dataset):
@@ -114,6 +114,7 @@ def train(file_pressure: Path = Argument(..., help='File containing pressure dat
           alpha_pi: float = Option(0.0, help='Alpha multiplier in front of the PDE loss'),
           n_epoch: int = Option(200, help='Number of training epochs'),
           unet_init_features: int = Option(32, help='Number if channels at the first convoltuinal layer in UNet model'),
+          autoencoder_latent_size: int = Option(100, help='Latent space size in Autoencoder model'),
           masking: bool = Option(True, help='Apply masking trick in MSE loss function'),
           mask_dilation: str = Option('3', help='Either integer value specifying number of neighbours for masking technique or'\
                                         ' a string "precond" that will force NN to pay greater attention to cells of higher permetivity'),
@@ -134,7 +135,11 @@ def train(file_pressure: Path = Argument(..., help='File containing pressure dat
         json.dump(params, f)
     set_seed(seed)
     
-    model = get_model(model_name, unet_init_features=unet_init_features).cuda()
+    model = get_model(
+        model_name,
+        unet_init_features=unet_init_features,
+        autoencoder_latent_size=autoencoder_latent_size,
+    ).cuda()
     
     tmp_filename = os.path.split(file_perm)[-1] + '_' + os.path.split(file_pressure)[-1] + '.dataset'
     tmp_filename = os.path.join(tmp_folder, tmp_filename)
