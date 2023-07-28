@@ -24,26 +24,33 @@ class MaskedMSELoss(nn.MSELoss):
             
         
 class PILoss(nn.Module):
-    def __init__(self, spacing=(25, 50), s=2e-4):
+    def __init__(self, spacing=(25, 50), s=2e-4, q=0):
         super().__init__()
         self.spacing = spacing
         self.s_ = s
         self.mse = MaskedMSELoss()
+        self.q = q
     
     def forward(self, p, K, mask=None):
-        divk = self.calc_divk(p, K)
+        divk, mask = self.calc_divk(p, K)
         p_dt = self.calc_p_dt(p)
         diff = divk - p_dt * self.s_
         q = torch.zeros_like(diff)
-        q[..., 32, 32] = 1.0
+        q[..., 32, 32] = self.q
         diff -= q
-        return self.mse(diff ** 2, 0.0, mask=mask)
+        return self.mse(diff, 0.0, mask=mask)
     
     def calc_divk(self, p, K):
         p_dx, p_dy = torch.gradient(p, dim=(-2, -1), edge_order=2, spacing=self.spacing)
         divk = torch.gradient(K * p_dx, dim=-2, edge_order=2, spacing=self.spacing[0])[0]\
             + torch.gradient(K * p_dy, dim=-1, edge_order=2, spacing=self.spacing[1])[0]
-        return divk
+        p_dxx = torch.gradient(p_dx, dim=-2, edge_order=2, spacing=self.spacing[0])[0]
+        p_dyy = torch.gradient(p_dy, dim=-1, edge_order=2, spacing=self.spacing[1])[0]
+        K_dx, K_dy = torch.gradient(K, dim=(-2, -1), edge_order=2, spacing=self.spacing)
+        laplace = p_dxx + p_dyy
+        divk2 = laplace * K + (p_dx * K_dx) + (p_dy * K_dy)
+        mask = ((divk - divk2).abs() < 100) #& (K != 0)
+        return divk, mask
     
     def calc_p_dt(self, p):
         return torch.gradient(p, dim=1, edge_order=2)[0]

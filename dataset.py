@@ -116,9 +116,27 @@ class PIImageDataset(Dataset):
     def __getitem__(self, index):
         if self.pressures is None:
             return self.perms[index], self.sources[index], None
-        return self.perms[index], self.sources[index], self.pressures[index]
+        p = self.pressures[index]
+        # p = 1 / p
+        # p[p == p.min()] = 0.0
+        return self.perms[index], self.sources[index], p
 
-
+class MarkedDataset(Dataset):
+    def __init__(self, dataset: PIImageDataset, label: bool):
+        self.dataset_ = dataset
+        self.label_ = label
+    
+    def __len__(self):
+        return len(self.dataset_)
+    
+    def __getitem__(self, index):
+        a, b, c = self.dataset_[index]
+        if self.label_:
+            z = torch.ones_like(a)
+        else:
+            z = torch.zeros_like(a)
+        a = torch.concat((a, z), dim=0)
+        return a, b, c
 
 # data_folder = 'data'
 # file_highres = '1_172.npy'

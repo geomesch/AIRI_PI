@@ -10,6 +10,8 @@ def set_seed(seed):
 
 def calc_mask(K, dilation=0, eps=1e-2):
     mask = K != 0
+    if len(mask.shape) == 4:
+        mask = mask[:, :1]
     if dilation:
         with torch.no_grad():
             if dilation == 'precond':
