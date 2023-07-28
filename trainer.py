@@ -1,32 +1,38 @@
+import json
+import os
+import random
+
 from click import Context
 from typer import Typer, Option, Argument
 from typer.core import TyperGroup
 from rich.progress import Progress, SpinnerColumn, track, TextColumn
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
-from dataset import PIImageDataset
-from utils import set_seed, calc_mask
 from torch import nn
-from loss import MaskedMSELoss, PILoss
 from pathlib import Path, PosixPath
 from tqdm import tqdm
 from enum import Enum
 import matplotlib.pyplot as plt
 import numpy as np
-import random
-import json
 import torch
-import os
 
-from models import UNet, Autoencoder
+from dataset import PIImageDataset
+from loss import MaskedMSELoss, PILoss
+from models import UNet, ConvAutoencoder
+from utils import set_seed, calc_mask
 
 
 def get_model(name: str, unet_init_features=32, autoencoder_latent_size=100, input_size=64):
     name = name.lower()
+
     if name == 'unet':
         return UNet(in_channels=1, out_channels=20, init_features=unet_init_features)
-    if name == 'autoencoder':
-        return Autoencoder(in_channels=1, out_channels=20, input_size=input_size, latent_size=autoencoder_latent_size)
+
+    if name == 'convautoencoder':
+        return ConvAutoencoder(
+            in_channels=1, out_channels=20,
+            image_size=input_size, latent_size=autoencoder_latent_size
+        )
 
 
 def compute_multipliers(train_dataset):
@@ -40,6 +46,7 @@ def compute_multipliers(train_dataset):
         press_mult = max(press_mult, pressure.max())
         # mx = (pressure * mask).reshape(t, -1).max(axis=1)
     return perm_mult, press_mult
+
 
 def build_figure(K, p, p_pred, use_mask=True):
     K = K.detach().cpu().numpy()
@@ -70,6 +77,7 @@ def build_figure(K, p, p_pred, use_mask=True):
     plt.tight_layout()
     return f
 
+
 def compute_loss(mse: nn.Module, pi: nn.Module, alpha: float, p: torch.tensor,
                  p_pred: torch.tensor, K: torch.tensor, use_mask: bool, mask_arg):
     if use_mask:
@@ -88,17 +96,20 @@ def compute_loss(mse: nn.Module, pi: nn.Module, alpha: float, p: torch.tensor,
     if alpha == 0:
         return mse
     pi = pi(p_pred, K, mask=mask)
+
     return mse + alpha * pi
+
 
 class Model(str, Enum):
     unet = 'UNet'
-    autoencoder = 'Autoencoder'
+    convautoencoder = 'ConvAutoencoder'
 
 
 class OrderCommands(TyperGroup):
-  def list_commands(self, ctx: Context):
-    """Return list of commands in the order appear."""
-    return list(self.commands)
+    def list_commands(self, ctx: Context):
+        """Return list of commands in the order appear."""
+        return list(self.commands)
+
 
 app = Typer(rich_markup_mode='rich', cls=OrderCommands, add_completion=False)
 
