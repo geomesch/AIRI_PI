@@ -6,6 +6,7 @@
 
 В проекте реализован Physics-Informed loss.
 
+
 ## Требования и установка зависимостей
 
 Проект тестировался в облачном сервисе **ML Space** (Cloud.ru), версия Python 3.9.
@@ -21,19 +22,19 @@
 
 ## Структура проекта
 
-- dataset.py &ndash; код для предобработки данных.
-- loss.py &ndash; реализация физически-информированной функции потерь.
-- trainer.py &ndash; крипт запуска обучения моделей.
-- utils.py &ndash; вспомогательный код.
-- q_estimate.py &ndash; ...
+- dataset.py &ndash; код для предобработки данных;
+- loss.py &ndash; реализация физически-информированной функции потерь;
+- trainer.py &ndash; крипт запуска обучения моделей;
+- utils.py &ndash; вспомогательный код;
+- resize.py &ndash; код для улучшения разрешения семплов датасета низкого разрешения;
+- q_estimate.py &ndash; код для экспериментов по вычислению q по данным;
 - numeric_darcy.ipynb &ndash; тетрадка с реализацией численного метода решения уравнения Дарси (работает некорректно).
-- data &ndash; папка для датасетов.
-- ...
+- data &ndash; папка для датасетов;
 
 
 ## Запуск обучения
 
-Перед запуском обучения моделей, поместите в папку `data` необходимые датасеты. Скрипт для запуска обучения - `train.py`.
+Перед запуском обучения моделей, поместите в папку `data` необходимые датасеты. Скрипт для запуска обучения &ndash; `train.py`.
 
 Вызов справки по аргументам скрипта:
 ```commandline
@@ -49,7 +50,12 @@ python trainer.py --help
 
 ## Результаты обучения
 
-Результаты обучения доступны через Tensorboard.
+Результаты обучения доступны через Tensorboard. Логи сохраняются в папаку `results`. Для их просмотра из облачного сервиса ML Space необходимо:
+
+1) Запустить сервис командой `tensorboard --logdir_spec results_all:results/`
+2) Пробросить порты в терминале на клиентском компьютере командой `ssh -L 9999:localhost:6006 xxxxxxxxxx.xxxxxxxxxxx@ssh-jupyter.aicloud.sbercloud.ru -p 2222 -i mlspace__private_key.txt`
+где команда `xxxxxxxxxx.xxxxxxxxxxx@ssh-jupyter.aicloud.sbercloud.ru -p 2222 -i` генерируется в консоли ML Space, `mlspace__private_key.txt` &ndash; секретный ключ, генерируется там же. 
+3) Просмотр логов будет доступен по адресу `http://localhost:9999/`
 
 
 ## Возможные ошибки при запуске
@@ -68,8 +74,3 @@ CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.c
 ```commandline
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 ```
-
-
-## Список источников
-
-...

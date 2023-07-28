@@ -55,25 +55,54 @@ def build_figure(K, p, p_pred, use_mask=True):
         mask[:] = True
     p = p.detach().cpu().numpy() * mask
     p_pred = p_pred.detach().cpu().numpy() * mask
-    f = plt.figure(dpi=150)
-    plt.subplot(2, 3, 1)
-    plt.imshow(p[0], origin='lower')
+
+    f = plt.figure(dpi=200)
+
+    plt.subplot(3, 3, 1)
+    im0 = plt.imshow(p[0], origin='lower')
     plt.title(r'True $p(x, y, t=1)$')
-    plt.subplot(2, 3, 2)
-    plt.imshow(p[p.shape[0] // 2], origin='lower')
+    plt.colorbar(im0, location='right', anchor=(0, 0.3), shrink=0.7)
+
+    plt.subplot(3, 3, 2)
+    im1 = plt.imshow(p[p.shape[0] // 2], origin='lower')
     plt.title(r'True $p(x, y, t=10)$')
-    plt.subplot(2, 3, 3)
-    plt.imshow(p[-1], origin='lower')
+    plt.colorbar(im1, location='right', anchor=(0, 0.3), shrink=0.7)
+
+    plt.subplot(3, 3, 3)
+    im2 = plt.imshow(p[-1], origin='lower')
     plt.title(r'True $p(x, y, t=20)$')
-    plt.subplot(2, 3, 4)
-    plt.imshow(p_pred[0], origin='lower')
+    plt.colorbar(im2, location='right', anchor=(0, 0.3), shrink=0.7)
+
+    plt.subplot(3, 3, 4)
+    im3 = plt.imshow(p_pred[0], origin='lower')
     plt.title(r'Predicted $p(x, y, t=1)$')
-    plt.subplot(2, 3, 5)
-    plt.imshow(p_pred[p.shape[0] // 2], origin='lower')
+    plt.colorbar(im3, location='right', anchor=(0, 0.3), shrink=0.7)
+
+    plt.subplot(3, 3, 5)
+    im4 = plt.imshow(p_pred[p.shape[0] // 2], origin='lower')
     plt.title(r'Predicted $p(x, y, t=10)$')
-    plt.subplot(2, 3, 6)
-    plt.imshow(p_pred[-1], origin='lower')
+    plt.colorbar(im4, location='right', anchor=(0, 0.3), shrink=0.7)
+
+    plt.subplot(3, 3, 6)
+    im5 = plt.imshow(p_pred[-1], origin='lower')
     plt.title(r'Predicted $p(x, y, t=20)$')
+    plt.colorbar(im5, location='right', anchor=(0, 0.3), shrink=0.7)
+
+    plt.subplot(3, 3, 7)
+    im6 = plt.imshow(np.abs(p[0] - p_pred[0]), origin='lower')
+    plt.title(r'Error p, t=1')
+    plt.colorbar(im6, location='right', anchor=(0, 0.3), shrink=0.7)
+    
+    plt.subplot(3, 3, 8)
+    im7 = plt.imshow(np.abs(p[p.shape[0] // 2] - p_pred[p.shape[0] // 2]), origin='lower')
+    plt.title(r'Error p, t=10')
+    plt.colorbar(im7, location='right', anchor=(0, 0.3), shrink=0.7)
+    
+    plt.subplot(3, 3, 9)
+    im8 = plt.imshow(np.abs(p[-1] - p_pred[-1]), origin='lower')
+    plt.title(r'Error p, t=20')
+    plt.colorbar(im8, location='right', anchor=(0, 0.3), shrink=0.7)
+
     plt.tight_layout()
     return f
 
